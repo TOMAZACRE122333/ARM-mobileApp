@@ -2,41 +2,47 @@
   "expo": {
     "name": "ARM Professors App",
     "slug": "ARM_project",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/ARM-LOGO.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/adaptive-icon.png",
+      "image": "./assets/ARM-LOGO.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#f8f9fa"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tomazacre.armproject",
+      "buildNumber": "1.0.0",
+      "icon": "./assets/ARM-LOGO.png"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/ARM-LOGO.png",
+        "backgroundColor": "#f8f9fa",
+        "monochromeImage": "./assets/ARM-LOGO.png"
       },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.windsurfproject"
+      "package": "com.tomazacre.armproject",
+      "versionCode": 2,
+      "icon": "./assets/ARM-LOGO.png"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "3090a311-8ddd-4d5e-acfd-4244c3b00145"
-      }
+      "favicon": "./assets/ARM-LOGO.png",
+      "bundler": "metro"
     },
     "runtimeVersion": {
       "policy": "appVersion"
     },
+    "extra": {
+      "eas": {
+        "projectId": "eafea280-5b1f-4af7-b357-56a75f20fb2f"
+      }
+    },
+    "owner": "tomazacre",
     "updates": {
-      "url": "https://u.expo.dev/3090a311-8ddd-4d5e-acfd-4244c3b00145"
+      "url": "https://u.expo.dev/eafea280-5b1f-4af7-b357-56a75f20fb2f"
     }
   }
 }

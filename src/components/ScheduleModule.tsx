@@ -336,7 +336,6 @@ export const ScheduleModule: React.FC<ScheduleModuleProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flex: 1,
     backgroundColor: '#F9FAFB',
   },
   header: {

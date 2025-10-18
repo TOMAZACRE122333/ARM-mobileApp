@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,25 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
-  Modal,
   Alert,
+  StatusBar,
+  Platform,
+  Modal,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/navigation/types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  department: string;
+  employeeId: string;
+  joinDate: string;
+  profileImage?: string;
+}
 
 interface ProfileModuleProps extends NativeStackScreenProps<RootStackParamList, 'Profile'> {
   professorName?: string;
@@ -33,6 +46,9 @@ export const ProfileModule: React.FC<ProfileModuleProps> = ({
   onProfilePress,
   onLogout,
 }) => {
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   
   // Navigation handlers
   const handleLogout = () => {
@@ -65,8 +81,15 @@ export const ProfileModule: React.FC<ProfileModuleProps> = ({
       navigation.navigate('Notification');
     }
   };
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
+  const handleBackPress = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      // Navigate to Home Dashboard
+      navigation.navigate('Home');
+    }
+  };
   const handleLogoutPress = () => {
     setShowLogoutModal(true);
   };
@@ -80,25 +103,50 @@ export const ProfileModule: React.FC<ProfileModuleProps> = ({
     setShowLogoutModal(false);
   };
 
+  // Load user data on component mount
+  useEffect(() => {
+    loadUserData();
+  }, []);
+
+  const loadUserData = async () => {
+    try {
+      // Try to get user data from AsyncStorage first
+      const storedUserData = await AsyncStorage.getItem('userProfile');
+      if (storedUserData) {
+        setUserProfile(JSON.parse(storedUserData));
+      } else {
+        // If no stored data, create mock data based on login
+        const mockUserData: UserProfile = {
+          id: '001',
+          name: professorName || 'Dr. John Smith',
+          email: 'john.smith@university.edu',
+          department: 'Computer Science',
+          employeeId: 'EMP001',
+          joinDate: '2020-09-15',
+        };
+        setUserProfile(mockUserData);
+        // Store for future use
+        await AsyncStorage.setItem('userProfile', JSON.stringify(mockUserData));
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+      // Fallback data
+      setUserProfile({
+        id: '001',
+        name: professorName || 'Professor',
+        email: 'professor@university.edu',
+        department: 'Academic',
+        employeeId: 'EMP001',
+        joinDate: new Date().toISOString().split('T')[0],
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+
   const profileOptions = [
-    {
-      id: 'personal-info',
-      title: 'Personal Information',
-      icon: 'person',
-      onPress: () => Alert.alert('Personal Information', 'Feature coming soon!'),
-    },
-    {
-      id: 'settings',
-      title: 'Settings',
-      icon: 'settings',
-      onPress: () => Alert.alert('Settings', 'Feature coming soon!'),
-    },
-    {
-      id: 'notifications',
-      title: 'Notification Preferences',
-      icon: 'notifications',
-      onPress: () => Alert.alert('Notifications', 'Feature coming soon!'),
-    },
     {
       id: 'help',
       title: 'Help & Support',
@@ -109,20 +157,43 @@ export const ProfileModule: React.FC<ProfileModuleProps> = ({
       id: 'about',
       title: 'About',
       icon: 'info',
-      onPress: () => Alert.alert('About', 'Classroom Management System v1.0'),
+      onPress: () => Alert.alert('About', 'Academic Resource Management System v1.0'),
     },
   ];
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar 
+          barStyle="dark-content" 
+          backgroundColor="#FFFFFF"
+          translucent={false}
+          hidden={false}
+        />
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading Profile...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar 
+        barStyle="dark-content" 
+        backgroundColor="#FFFFFF" 
+        translucent={false}
+        hidden={false}
+        networkActivityIndicatorVisible={false}
+      />
       <ScrollView style={styles.scrollView}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} style={styles.backButton}>
+          <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
             <MaterialIcons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Profile</Text>
-          <TouchableOpacity onPress={onNotificationPress}>
+          <TouchableOpacity onPress={handleNotificationPress} style={styles.notificationButton}>
             <MaterialIcons name="notifications" size={24} color="#000" />
           </TouchableOpacity>
         </View>
@@ -132,9 +203,26 @@ export const ProfileModule: React.FC<ProfileModuleProps> = ({
           <View style={styles.avatarContainer}>
             <MaterialIcons name="person" size={40} color="#FFFFFF" />
           </View>
-          <Text style={styles.professorName}>{professorName}</Text>
+          <Text style={styles.professorName}>{userProfile?.name || professorName}</Text>
           <Text style={styles.professorTitle}>Professor</Text>
         </View>
+
+        {/* User Details Card */}
+        {/* <View style={styles.userDetailsCard}>
+          <Text style={styles.sectionTitle}>Contact Information</Text>
+          <View style={styles.detailRow}>
+            <MaterialIcons name="email" size={20} color="#6B7280" />
+            <Text style={styles.detailText}>{userProfile?.email}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <MaterialIcons name="work" size={20} color="#6B7280" />
+            <Text style={styles.detailText}>{userProfile?.department} Department</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <MaterialIcons name="date-range" size={20} color="#6B7280" />
+            <Text style={styles.detailText}>Joined: {userProfile?.joinDate}</Text>
+          </View>
+        </View> */}
 
         {/* Profile Options */}
         <View style={styles.optionsContainer}>
@@ -234,14 +322,28 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 5,
   },
+  notificationButton: {
+    padding: 5,
+  },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#111827',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
   profileCard: {
     backgroundColor: '#FFFFFF',
     margin: 20,
+    marginTop: 5,
     marginBottom: 15,
     borderRadius: 12,
     padding: 20,
@@ -251,6 +353,35 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  userDetailsCard: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 20,
+    marginBottom: 15,
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 16,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  detailText: {
+    fontSize: 14,
+    color: '#374151',
+    marginLeft: 12,
+    fontWeight: '500',
   },
   avatarContainer: {
     width: 70,

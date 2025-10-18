@@ -199,7 +199,7 @@ export const NotificationModule: React.FC<NotificationModuleProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+   
     flex: 1,
     backgroundColor: '#F9FAFB',
   },
